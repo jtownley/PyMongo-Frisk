@@ -7,12 +7,54 @@ class PyMongoFrisk(object):
         pass
 
     def from_uri(self,uri="mongodb://localhost", **connection_args):
+        self._uri = copy.copy(uri)
         self._parse_uri(uri)
         self._connection = Connection.from_uri(uri, **connection_args)
         return self._connection
 
     def check_health(self):
-        pass
+        master = self._connection.host
+
+        test_data = {"_id":self._database, 'date': datetime.datetime.now().microsecond}
+
+        db_master_can_read = False
+        try:
+            db_master_can_read = self._connection.collection_names() != []
+        except:
+            pass
+
+        db_master_can_write = False
+        try:
+            self._connection['friskmonitoring'].save(test_data)
+            db_master_can_write = self._connection['friskmonitoring'].find_one({'_id':self._database}) == test_data
+        except:
+            pass
+        finally:
+            self._connection.drop_collection('friskmonitoring')
+
+        db_slave_can_read = False
+        hosts = copy.copy(self._hosts)
+        if len(hosts) > 1:
+            hosts.remove(master)
+            slave = hosts[0]
+            try:
+                slave_uri = copy.copy(self._uri)
+                if "," in slave_uri:
+                    slave_uri = slave_uri.replace(master, '').replace(',','')
+                slave_connection = Connection.from_uri(slave_uri)
+                db_slave_can_read = slave_connection.collection_names() != []
+            except:
+                pass
+            finally:
+                slave_connection.disconnect()
+        else:
+            slave = None
+
+        return {'db_master_url': master,
+                'db_slave_url': slave,
+                'db_master_can_read':db_master_can_read,
+                'db_master_can_write':db_master_can_write,
+                'db_slave_can_read':db_slave_can_read}
 
     def _parse_uri(self, uri):
         try:
@@ -32,47 +74,3 @@ class PyMongoFrisk(object):
                 raise pymongo.errors.InvalidURI("Too many hosts")
         except:
             raise pymongo.errors.InvalidURI("Uri not in expected format")
-
-
-
-#    def test_connections(self):
-#        master = self._connection.connection.host
-#        hosts = copy.copy(self._hosts)
-#        hosts.remove(master)
-#        slave = hosts[0]
-#        test_data = {"_id":self._database, 'date': datetime.datetime.now().microsecond}
-#
-#        db_master_read = False
-#        try:
-#            db_master_read = self._connection.collection_names() != []
-#        except:
-#            pass
-#
-#        db_master_write = False
-#        try:
-#            self._connection['friskmonitoring'].save(test_data)
-#            db_master_write = self._connection['friskmonitoring'].find_one({'_id':self._database}) == test_data
-#        except:
-#            pass
-#        finally:
-#            self._connection.drop_collection('friskmonitoring')
-#
-#        db_slave_read = False
-#        try:
-#            slave_connection = self._create_connection([slave])
-#            db_slave_read = self._connection.collection_names() != []
-#        except:
-#            pass
-#        finally:
-#            slave_connection.connection.disconnect()
-#
-#        return {'db_master_url': master, 'db_slave_url': slave, 'db_master_read':db_master_read,
-#                'db_slave_read': db_slave_read, 'db_master_write': db_master_write}
-#
-#    def _create_connection(self, hosts):
-#        host_list = ",".join(self._hosts)
-#        return pymongo.Connection.from_uri(
-#                "mongodb://%s:%s@%s%s" % (self._username, self._password, host_list, "/" + self._database))[self._database]
-
-
-
