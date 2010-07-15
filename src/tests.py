@@ -11,91 +11,82 @@ class PyMongoFriskTest(unittest.TestCase):
     def test_connection_from_uri_calls_parent_with_same(self, mock_from_uri):
         test_uri = "mongo://user:password@url.com/database"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         mock_from_uri.assert_called_with(test_uri)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_connection_from_uri_creates_expected_details(self, mock_from_uri):
         test_uri = "mongo://username:password@host1,host2/database"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        expected_connection = pmf.from_uri(test_uri)
-        self.assertEquals('username',pmf._username)
-        self.assertEquals('password',pmf._password)
-        self.assertEquals('database',pmf._database)
-        self.assertEquals(['host1','host2'],pmf._hosts)
-        self.assertEquals('Connection', expected_connection)
+        expected_connection = PMF.from_uri(test_uri)
+        self.assertEquals('username',expected_connection._username)
+        self.assertEquals('password',expected_connection._password)
+        self.assertEquals('database',expected_connection._database)
+        self.assertEquals(['host1','host2'],expected_connection._hosts)
+        self.assertEquals('Connection', expected_connection._connection)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_connection_from_uri_creates_expected_details_even_if_port_specified(self, mock_from_uri):
         test_uri = "mongo://username:password@host1:123,host2:456/database"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        expected_connection = pmf.from_uri(test_uri)
-        self.assertEquals('username',pmf._username)
-        self.assertEquals('password',pmf._password)
-        self.assertEquals('database',pmf._database)
-        self.assertEquals(['host1:123','host2:456'],pmf._hosts)
-        self.assertEquals('Connection', expected_connection)
+        expected_connection = PMF.from_uri(test_uri)
+        self.assertEquals('username',expected_connection._username)
+        self.assertEquals('password',expected_connection._password)
+        self.assertEquals('database',expected_connection._database)
+        self.assertEquals(['host1:123','host2:456'],expected_connection._hosts)
+        self.assertEquals('Connection', expected_connection._connection)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_connection_from_uri_creates_expected_details_given_one_host(self, mock_from_uri):
         test_uri = "mongo://username:password@host1/database"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        expected_connection = pmf.from_uri(test_uri)
-        self.assertEquals('username',pmf._username)
-        self.assertEquals('password',pmf._password)
-        self.assertEquals('database',pmf._database)
-        self.assertEquals(['host1'],pmf._hosts)
-        self.assertEquals('Connection', expected_connection)
+        expected_connection = PMF.from_uri(test_uri)
+        self.assertEquals('username',expected_connection._username)
+        self.assertEquals('password',expected_connection._password)
+        self.assertEquals('database',expected_connection._database)
+        self.assertEquals(['host1'],expected_connection._hosts)
+        self.assertEquals('Connection', expected_connection._connection)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_connection_from_uri_creates_expected_details_given_no_db(self, mock_from_uri):
         test_uri = "mongo://username:password@host1"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        expected_connection = pmf.from_uri(test_uri)
-        self.assertEquals('username',pmf._username)
-        self.assertEquals('password',pmf._password)
-        self.assertEquals(None,pmf._database)
-        self.assertEquals(['host1'],pmf._hosts)
-        self.assertEquals('Connection', expected_connection)
-
+        expected_connection = PMF.from_uri(test_uri)
+        self.assertEquals('username',expected_connection._username)
+        self.assertEquals('password',expected_connection._password)
+        self.assertEquals(None,expected_connection._database)
+        self.assertEquals(['host1'],expected_connection._hosts)
+        self.assertEquals('Connection', expected_connection._connection)
+#
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_connection_from_uri_creates_expected_details_given_no_auth(self, mock_from_uri):
         test_uri = "mongo://host1"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        expected_connection = pmf.from_uri(test_uri)
-        self.assertEquals(None,pmf._username)
-        self.assertEquals(None,pmf._password)
-        self.assertEquals(None,pmf._database)
-        self.assertEquals(['host1'],pmf._hosts)
-        self.assertEquals('Connection', expected_connection)
+        expected_connection = PMF.from_uri(test_uri)
+        self.assertEquals(None,expected_connection._username)
+        self.assertEquals(None,expected_connection._password)
+        self.assertEquals(None,expected_connection._database)
+        self.assertEquals(['host1'],expected_connection._hosts)
+        self.assertEquals('Connection', expected_connection._connection)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_connection_from_uri_throws_exception_when_invalid_uri(self, mock_from_uri):
         test_uri = "mongo://username@host/database"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        self.assertRaises(pymongo.errors.InvalidURI, pmf.from_uri, test_uri)
+        self.assertRaises(pymongo.errors.InvalidURI, PMF.from_uri, test_uri)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_connection_from_uri_throws_exception_when_to_many_hosts(self, mock_from_uri):
         test_uri = "mongo://username:password@host1,host2,host3/database"
         mock_from_uri.return_value="Connection"
-        pmf = PMF()
-        self.assertRaises(pymongo.errors.InvalidURI, pmf.from_uri, test_uri)
+        self.assertRaises(pymongo.errors.InvalidURI, PMF.from_uri, test_uri)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_check_health_returns_master_and_slave_urls(self, mock_from_uri):
         test_uri = "mongo://username:password@host1,host2/database"
         connection_stub = ConnectionStub()
         mock_from_uri.return_value=connection_stub
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         health = pmf.check_health()
         self.assertEquals('host1',health['db_master_url'])
         self.assertEquals('host2',health['db_slave_url'])
@@ -105,8 +96,7 @@ class PyMongoFriskTest(unittest.TestCase):
         test_uri = "mongo://username:password@host1,host2/database"
         connection_stub = ConnectionStub()
         mock_from_uri.return_value=connection_stub
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         health = pmf.check_health()
         self.assertTrue(health['db_master_can_read'])
         self.assertTrue(health['db_master_can_write'])
@@ -118,8 +108,7 @@ class PyMongoFriskTest(unittest.TestCase):
         connection_stub = ConnectionStub()
         connection_stub.database.collections = []
         mock_from_uri.return_value=connection_stub
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         health = pmf.check_health()
         self.assertFalse(health['db_master_can_read'])
 
@@ -130,8 +119,7 @@ class PyMongoFriskTest(unittest.TestCase):
         connection_stub.database.collection.override_data = True
         connection_stub.database.collection.data = None
         mock_from_uri.return_value=connection_stub
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         health = pmf.check_health()
         self.assertFalse(health['db_master_can_write'])
 
@@ -143,8 +131,7 @@ class PyMongoFriskTest(unittest.TestCase):
         slave_connection_stub = ConnectionStub()
         slave_connection_stub.host = 'host2'
         mock_from_uri.return_value=master_connection_stub
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         mock_from_uri.return_value=slave_connection_stub
         health = pmf.check_health()
 
@@ -157,8 +144,7 @@ class PyMongoFriskTest(unittest.TestCase):
         test_uri = "mongo://username:password@host1/database"
         connection_stub = ConnectionStub()
         mock_from_uri.return_value=connection_stub
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         health = pmf.check_health()
         self.assertFalse(health['db_slave_can_read'])
         self.assertEquals(None, health['db_slave_url'])
@@ -172,8 +158,7 @@ class PyMongoFriskTest(unittest.TestCase):
         slave_connection_stub.database.collections = []
         slave_connection_stub.host = 'host2'
         mock_from_uri.return_value=master_connection_stub
-        pmf = PMF()
-        pmf.from_uri(test_uri)
+        pmf = PMF.from_uri(test_uri)
         mock_from_uri.return_value=slave_connection_stub
         health = pmf.check_health()
 

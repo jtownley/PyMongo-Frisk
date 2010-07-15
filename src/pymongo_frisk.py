@@ -1,20 +1,20 @@
 import datetime, copy
 import pymongo
-from pymongo.connection import Connection
+from pymongo.connection import Connection as mongo_con
 
 class PyMongoFrisk(object):
-    def __init__(self):
-        pass
-
-    def from_uri(self,uri="mongodb://localhost", **connection_args):
+    def __init__(self, uri, **kw):
         self._uri = copy.copy(uri)
         self._parse_uri(uri)
-        self._connection = Connection.from_uri(uri, **connection_args)
-        return self._connection
+        self._connection = mongo_con.from_uri(uri, **kw)
 
+    @classmethod
+    def from_uri(cls, uri, **kw):
+        return cls(uri, **kw)
 
+    def __getattr__(self, attr_name):
+        return getattr(self._connection, attr_name)
 
-        
     def check_health(self):
         master_connection = self._connection[self._database]
         master = self._connection.host
@@ -46,7 +46,7 @@ class PyMongoFrisk(object):
                 if "," in slave_uri:
                     slave_uri = slave_uri.replace(master, '').replace(',','')
                     slave_uri = slave_uri.replace(master, '').replace(',','')
-                slave_connection = Connection.from_uri(slave_uri,slave_okay=True)
+                slave_connection = mongo_con.from_uri(slave_uri,slave_okay=True)
                 db_slave_can_read = slave_connection[self._database].collection_names() != []
             except:
                 pass
@@ -81,3 +81,5 @@ class PyMongoFrisk(object):
                 raise pymongo.errors.InvalidURI("Too many hosts")
         except:
             raise pymongo.errors.InvalidURI("Uri not in expected format")
+
+Connection = PyMongoFrisk
