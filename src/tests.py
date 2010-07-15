@@ -2,6 +2,7 @@ import unittest
 import pymongo
 from pymongo_frisk import PyMongoFrisk as PMF
 from mock import patch_object, patch
+import pymongo.errors
 
 class PyMongoFriskTest(unittest.TestCase):
 
@@ -73,6 +74,20 @@ class PyMongoFriskTest(unittest.TestCase):
         self.assertEquals(None,pmf._database)
         self.assertEquals(['host1'],pmf._hosts)
         self.assertEquals('Connection', expected_connection)
+
+    @patch_object(pymongo.connection.Connection, 'from_uri')
+    def test_connection_from_uri_throws_exception_when_invalid_uri(self, mock_from_uri):
+        test_uri = "mongo://username@host/database"
+        mock_from_uri.return_value="Connection"
+        pmf = PMF()
+        self.assertRaises(pymongo.errors.InvalidURI, pmf.from_uri, test_uri)
+
+    @patch_object(pymongo.connection.Connection, 'from_uri')
+    def test_connection_from_uri_throws_exception_when_to_many_hosts(self, mock_from_uri):
+        test_uri = "mongo://username:password@host1,host2,host3/database"
+        mock_from_uri.return_value="Connection"
+        pmf = PMF()
+        self.assertRaises(pymongo.errors.InvalidURI, pmf.from_uri, test_uri)
 
 if __name__=='__main__':
     unittest.main()
