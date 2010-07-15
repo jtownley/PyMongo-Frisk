@@ -13,24 +13,25 @@ class PyMongoFrisk(object):
         return self._connection
 
     def check_health(self):
+        test_connection = self._connection[self._database]
         master = self._connection.host
 
         test_data = {"_id":self._database, 'date': datetime.datetime.now().microsecond}
 
         db_master_can_read = False
         try:
-            db_master_can_read = self._connection.collection_names() != []
+            db_master_can_read = test_connection.collection_names() != []
         except:
             pass
 
         db_master_can_write = False
         try:
-            self._connection['friskmonitoring'].save(test_data)
-            db_master_can_write = self._connection['friskmonitoring'].find_one({'_id':self._database}) == test_data
+            test_connection['friskmonitoring'].save(test_data)
+            db_master_can_write = test_connection['friskmonitoring'].find_one({'_id':self._database}) == test_data
         except:
             pass
         finally:
-            self._connection.drop_collection('friskmonitoring')
+            test_connection.drop_collection('friskmonitoring')
 
         db_slave_can_read = False
         hosts = copy.copy(self._hosts)
@@ -41,8 +42,9 @@ class PyMongoFrisk(object):
                 slave_uri = copy.copy(self._uri)
                 if "," in slave_uri:
                     slave_uri = slave_uri.replace(master, '').replace(',','')
+                    slave_uri = slave_uri.replace(master, '').replace(',','')
                 slave_connection = Connection.from_uri(slave_uri)
-                db_slave_can_read = slave_connection.collection_names() != []
+                db_slave_can_read = slave_connection[self._database].collection_names() != []
             except:
                 pass
             finally:

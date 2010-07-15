@@ -110,13 +110,13 @@ class PyMongoFriskTest(unittest.TestCase):
         health = pmf.check_health()
         self.assertTrue(health['db_master_can_read'])
         self.assertTrue(health['db_master_can_write'])
-        self.assertTrue(connection_stub.drop_collection_called)
+        self.assertTrue(connection_stub.database.drop_collection_called)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_check_health_returns_master_read_fail_when_master_cannot_be_read(self, mock_from_uri):
         test_uri = "mongo://username:password@host1,host2/database"
         connection_stub = ConnectionStub()
-        connection_stub.collections = []
+        connection_stub.database.collections = []
         mock_from_uri.return_value=connection_stub
         pmf = PMF()
         pmf.from_uri(test_uri)
@@ -127,8 +127,8 @@ class PyMongoFriskTest(unittest.TestCase):
     def test_check_health_returns_master_write_fail_when_master_cannot_write(self, mock_from_uri):
         test_uri = "mongo://username:password@host1,host2/database"
         connection_stub = ConnectionStub()
-        connection_stub.collection.override_data = True
-        connection_stub.collection.data = None
+        connection_stub.database.collection.override_data = True
+        connection_stub.database.collection.data = None
         mock_from_uri.return_value=connection_stub
         pmf = PMF()
         pmf.from_uri(test_uri)
@@ -169,7 +169,7 @@ class PyMongoFriskTest(unittest.TestCase):
         expected_slave_uri = "mongo://username:password@host2/database"
         master_connection_stub = ConnectionStub()
         slave_connection_stub = ConnectionStub()
-        slave_connection_stub.collections = []
+        slave_connection_stub.database.collections = []
         slave_connection_stub.host = 'host2'
         mock_from_uri.return_value=master_connection_stub
         pmf = PMF()
@@ -187,6 +187,20 @@ class ConnectionStub(object):
 
     def defaults(self):
         self.host= "host1"
+        self.database = DatabaseStub()
+        self.disconnect_called = False
+
+    def __getitem__(self,name):
+        return self.database
+
+    def disconnect(self):
+        self.disconnect_called = True
+
+class DatabaseStub(object):
+    def __init__(self):
+        self.defaults()
+
+    def defaults(self):
         self.collection = CollectionStub()
         self.drop_collection_called = False
         self.disconnect_called = False
@@ -200,9 +214,6 @@ class ConnectionStub(object):
 
     def drop_collection(self, collection_name):
         self.drop_collection_called = True
-
-    def disconnect(self):
-        self.disconnect_called = True
 
 class CollectionStub(object):
     def __init__(self):
