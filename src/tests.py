@@ -148,7 +148,7 @@ class PyMongoFriskTest(unittest.TestCase):
         mock_from_uri.return_value=slave_connection_stub
         health = pmf.check_health()
 
-        mock_from_uri.assert_called_with(expected_slave_uri)
+        mock_from_uri.assert_called_with(expected_slave_uri, slave_okay=True)
         self.assertTrue(health['db_slave_can_read'])
         self.assertTrue(slave_connection_stub.disconnect_called)
 
@@ -177,7 +177,7 @@ class PyMongoFriskTest(unittest.TestCase):
         mock_from_uri.return_value=slave_connection_stub
         health = pmf.check_health()
 
-        mock_from_uri.assert_called_with(expected_slave_uri)
+        mock_from_uri.assert_called_with(expected_slave_uri, slave_okay=True)
         self.assertFalse(health['db_slave_can_read'])
         self.assertTrue(slave_connection_stub.disconnect_called)
 
