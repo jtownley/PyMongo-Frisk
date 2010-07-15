@@ -15,6 +15,9 @@ class PyMongoFrisk(object):
     def __getattr__(self, attr_name):
         return getattr(self._connection, attr_name)
 
+    def __getitem__(self,name):
+        return self._connection[name]
+
     def check_health(self):
         master_connection = self._connection[self._database]
         master = self._connection.host
