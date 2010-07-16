@@ -4,7 +4,7 @@ from pymongo.connection import Connection as mongo_con
 
 class PyMongoFrisk(object):
     """Wrapper for pymongo Connection allowing additional check_health method for checking connectivity of master and slave
-    """"
+    """
     def __init__(self, uri, **kw):
         self._uri = copy.copy(uri)
         self._parse_uri(uri)
