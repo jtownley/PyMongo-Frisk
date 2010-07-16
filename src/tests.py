@@ -1,7 +1,7 @@
 import unittest
 import pymongo
 from pymongo_frisk import PyMongoFrisk as PMF
-from mock import patch_object, patch, Mock
+from mock import patch_object
 import pymongo.errors
 
 class PyMongoFriskTest(unittest.TestCase):

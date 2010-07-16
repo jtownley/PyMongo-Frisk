@@ -3,6 +3,8 @@ import pymongo
 from pymongo.connection import Connection as mongo_con
 
 class PyMongoFrisk(object):
+    """Wrapper for pymongo Connection allowing additional check_health method for checking connectivity of master and slave
+    """"
     def __init__(self, uri, **kw):
         self._uri = copy.copy(uri)
         self._parse_uri(uri)
@@ -19,6 +21,9 @@ class PyMongoFrisk(object):
         return self._connection[name]
 
     def check_health(self):
+        """Returns the health of a paired connection in dictionary format.
+        {'db_master_url': 'host2', 'db_slave_url': 'host1', 'db_master_can_write': True, 'db_slave_can_read': True, 'db_master_can_read': True}
+        """
         master_connection = self._connection[self._database]
         master = self._connection.host
         test_data = {"_id":self._database, 'date': datetime.datetime.now().microsecond}
