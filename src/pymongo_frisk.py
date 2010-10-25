@@ -1,4 +1,4 @@
-import datetime, copy
+import datetime, copy, uuid
 import pymongo
 from pymongo.connection import Connection as mongo_con
 
@@ -26,22 +26,23 @@ class PyMongoFrisk(object):
         """
         master_connection = self._connection[self._database]
         master = self._connection.host
-        test_data = {"_id":self._database, 'date': datetime.datetime.now().microsecond}
+        id = str(uuid.uuid1())
+        test_data = {"_id":id, 'date': datetime.datetime.now().microsecond}
+
+        db_master_can_write = False
+        try:
+            master_connection['friskmonitoring'].save(test_data)
+            db_master_can_write = master_connection['friskmonitoring'].find_one({'_id':id}) == test_data
+        except:
+            pass
+        finally:
+            master_connection['friskmonitoring'].remove({'_id':id})
 
         db_master_can_read = False
         try:
             db_master_can_read = master_connection.collection_names() != []
         except:
             pass
-
-        db_master_can_write = False
-        try:
-            master_connection['friskmonitoring'].save(test_data)
-            db_master_can_write = master_connection['friskmonitoring'].find_one({'_id':self._database}) == test_data
-        except:
-            pass
-        finally:
-            master_connection.drop_collection('friskmonitoring')
 
         db_slave_can_read = False
         hosts = copy.copy(self._hosts)

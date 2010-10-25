@@ -100,7 +100,7 @@ class PyMongoFriskTest(unittest.TestCase):
         health = pmf.check_health()
         self.assertTrue(health['db_master_can_read'])
         self.assertTrue(health['db_master_can_write'])
-        self.assertTrue(connection_stub.database.drop_collection_called)
+        self.assertTrue(connection_stub.database.collection.remove_called)
 
     @patch_object(pymongo.connection.Connection, 'from_uri')
     def test_check_health_returns_master_read_fail_when_master_cannot_be_read(self, mock_from_uri):
@@ -206,6 +206,7 @@ class CollectionStub(object):
 
     def defaults(self):
         self.override_data = False
+        self.remove_called = False
 
     def save(self, data):
         if not self.override_data:
@@ -213,6 +214,9 @@ class CollectionStub(object):
 
     def find_one(self, query):
         return self.data
+
+    def remove(self, query):
+        self.remove_called = True
 
 if __name__=='__main__':
     unittest.main()
