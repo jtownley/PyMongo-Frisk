@@ -6,7 +6,7 @@ cd src
 python --version
 python setup.py sdist
 
-pip install --upgrade dist/pymongo_frisk*.tar.gz
+pip install --upgrade dist/PyMongo-Frisk*.tar.gz
 pip install mock==0.6.0
 
 python tests.py
