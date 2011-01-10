@@ -79,7 +79,7 @@ Topic :: Utilities
 """
 
 setup(name='PyMongo-Frisk',
-      version='0.0.3',
+      version='0.0.4',
       description='Wrapper for PyMongo Connection that offers additional application level monitoring. When connecting to multiple MongoDB servers, allows you to verify connectivity to MongoDB slave servers.',
       author='Brian Richardson & James Townley',
       author_email='jtownley@point2.com',
