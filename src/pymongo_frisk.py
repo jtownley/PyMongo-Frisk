@@ -1,9 +1,94 @@
 import datetime, copy, uuid
 import pymongo
 from pymongo.connection import Connection as mongo_con
+from pymongo import Connection
+
+class FriskConnection(pymongo.Connection):
+    """Extension to the PyMongo Connection class that adds a check_health method for verifying
+    connectivity to the Master as well as ALL Slaves in the Replica Set
+    """
+    def check_health(self):
+        """Returns the health of ALL nodes in a Replica Set in dictionary format.
+        {'db_master_host': 'host1:27017', 'db_slave_hosts': ['host2:27018','host3:27019'], 
+        'db_master_can_write': True, 'db_master_can_read': True,
+        'db_slaves_can_read': [('host2',True),('host3',True)] }
+        """
+        db = 'monitoring'
+        db_master_can_write = self._can_write_to_master(db)
+        db_master_can_read = self._can_read_from_master(db)
+
+        slaves = self._get_slave_hosts()
+        db_slaves_can_read = self._can_read_from_slaves(slaves)
+
+        return {'db_master_host': self.host + ':' + str(self.port),
+                'db_slave_hosts': slaves,
+                'db_master_can_read':db_master_can_read,
+                'db_master_can_write':db_master_can_write,
+                'db_slaves_can_read':db_slaves_can_read
+                }
+
+    def _get_slave_hosts(self):
+        master_host = self.host
+        master_port = self.port
+        slaves = []
+        for node in self.nodes:
+            slave_host = node[0]
+            slave_port = node[1]
+            if '.' in slave_host:
+                slave_host = str(slave_host).split(".",1)[0]
+            if (slave_host != master_host or slave_port != master_port and not slave_host+':'+str(slave_port) in slaves):
+                slaves.append(slave_host+':'+str(slave_port))
+        return slaves
+    
+    def _can_read_from_slaves(self, slaves):
+        db_slaves_can_read = []
+        for slave in slaves:
+            is_healthy = False
+            slave_connection = None
+            try:
+                slave_connection = pymongo.connection.Connection(slave, slave_okay=True)
+                if 'admin' in slave_connection.database_names():
+                    is_healthy = True                
+            except Exception as e:
+                pass
+            finally:
+                if slave_connection:
+                    slave_connection.disconnect() 
+            db_slaves_can_read.append((slave, is_healthy))
+        return db_slaves_can_read
+
+    def _can_write_to_master(self, db):
+        master_db = self.db
+        db_master_can_write = False
+        try:
+            id = self._get_new_uuid()
+            test_data = {"_id":id, 'date': self._get_datetime_now_microseconds()}
+            master_db['friskmonitoring'].save(test_data)
+            db_master_can_write = master_db['friskmonitoring'].find_one({'_id':id}) == test_data
+        except:
+            pass
+        finally:
+            master_db['friskmonitoring'].remove({'_id':id})
+        return db_master_can_write
+
+    def _can_read_from_master(self, db):
+        master_db = self.db
+        db_master_can_read = False
+        try:
+            db_master_can_read = master_db.collection_names() != []
+        except:
+            pass
+        return db_master_can_read
+
+    def _get_datetime_now_microseconds(self):
+        return datetime.datetime.now().microsecond
+        
+    def _get_new_uuid(self):
+        return str(uuid.uuid1())
 
 class PyMongoFrisk(object):
-    """Wrapper for pymongo Connection allowing additional check_health method for checking connectivity of master and slave
+    """Wrapper for pymongo Connection allowing additional check_health method for checking connectivity 
+    of master and slave in a Replica Pair running in Auth mode
     """
     def __init__(self, uri, **kw):
         self._uri = copy.copy(uri)
@@ -21,8 +106,10 @@ class PyMongoFrisk(object):
         return self._connection[name]
 
     def check_health(self):
-        """Returns the health of a paired connection in dictionary format.
-        {'db_master_url': 'host2', 'db_slave_url': 'host1', 'db_master_can_write': True, 'db_slave_can_read': True, 'db_master_can_read': True}
+        """Returns the health of a both nodes in a Replica Pair connection in dictionary format.
+        {'db_master_url': 'host2', 'db_slave_url': 'host1', 
+        'db_master_can_write': True, 'db_master_can_read': True, 
+        'db_slave_can_read': True}
         """
         master_connection = self._connection[self._database]
         master = self._connection.host

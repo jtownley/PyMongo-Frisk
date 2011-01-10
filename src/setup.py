@@ -8,7 +8,7 @@ Release under Apache-BSD style license
 Source: http://github.com/jtownley/PyMongo-Frisk
 
 
-Version: 0.0.1
+Version: 0.0.3
 
 ----------------------------------
 Description
@@ -44,19 +44,28 @@ with the slave.
 ----------------------------------
 Usage
 ----------------------------------
-
 Use it as you would pymongo and call the check health method on connection
 
-    import pymongo_frisk as pymongo
+--Replica Sets--
 
-    connection =
-pymongo.connection.Connection.from_uri("mongo://username:password@host1,host2/da
-tabase")
+    from pymongo_frisk import FriskConnection as Connection
+    connection = Connection(['host1','host2','host3'])
+    results = connection.check_health()
+
+results is a dictionary as follows
+{'db_master_host': 'host1:27017', 'db_slave_hosts': ['host2:27018','host3:27019'], 
+    'db_master_can_write': True, 'db_master_can_read': True,
+    'db_slaves_can_read': [('host2',True),('host3',True)] }
+        
+--Replica Pairs with Auth--
+
+    import pymongo_frisk as pymongo
+    connection = pymongo.connection.Connection.from_uri("mongo://username:password@host1,host2/database")
     results = connection.check_health()
 
 results is a dictionary as follows:
 {'db_master_url': 'host2', 'db_slave_url': 'host1', 'db_master_can_write': True,
-'db_slave_can_read': True, 'db_master_can_read': True}
+    'db_slave_can_read': True, 'db_master_can_read': True}
 """
 
 classifiers = """\
