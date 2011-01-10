@@ -8,7 +8,7 @@ Release under Apache-BSD style license
 Source: http://github.com/jtownley/PyMongo-Frisk
 
 
-Version: 0.0.3
+Version: 0.0.4
 
 ----------------------------------
 Description

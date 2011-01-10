@@ -4,5 +4,5 @@ Version 0.0.1 - Released 2010-07-16
 Version 0.0.2 - Released 2010-10-25
 - Fixed : Used single field in collection instead of dropping and re-adding the collection each time. This was to counteract a problem with MongoDB crashing after many drop and re-adds.
 
-Version 0.0.3 - Release 2011-01-10
+Version 0.0.4 - Release 2011-01-10
 - Updated to work with Replica Sets. Added the new class FriskConnection which extends pymongo Connection with our check_health() method
