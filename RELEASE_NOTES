@@ -6,3 +6,7 @@ Version 0.0.2 - Released 2010-10-25
 
 Version 0.0.4 - Release 2011-01-10
 - Updated to work with Replica Sets. Added the new class FriskConnection which extends pymongo Connection with our check_health() method
+
+Version 0.0.5 - Release 2011-01-19
+- Fixed: Failed to return if slave is "Write logged" due to bug in Mongo see https://jira.mongodb.org/browse/SERVER-2278
+- New Feature: Write Locked slaves will now be listed as Write Locked in status

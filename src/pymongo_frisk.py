@@ -47,13 +47,17 @@ class FriskConnection(pymongo.Connection):
             slave_connection = None
             try:
                 slave_connection = pymongo.connection.Connection(slave, slave_okay=True)
-                if 'admin' in slave_connection.database_names():
-                    is_healthy = True                
+                stats=slave_connection.admin["$cmd.sys.inprog"].find_one()
+                if(u"fsyncLock" not in stats.keys()):
+                    if 'admin' in slave_connection.database_names():
+                        is_healthy = True
+                else:
+                    is_healthy="Write Locked"
             except Exception as e:
                 pass
             finally:
                 if slave_connection:
-                    slave_connection.disconnect() 
+                    slave_connection.disconnect()
             db_slaves_can_read.append((slave, is_healthy))
         return db_slaves_can_read
 

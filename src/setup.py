@@ -8,7 +8,7 @@ Release under Apache-BSD style license
 Source: http://github.com/jtownley/PyMongo-Frisk
 
 
-Version: 0.0.4
+Version: 0.0.5
 
 ----------------------------------
 Description
@@ -79,7 +79,7 @@ Topic :: Utilities
 """
 
 setup(name='PyMongo-Frisk',
-      version='0.0.4',
+      version='0.0.5',
       description='Wrapper for PyMongo Connection that offers additional application level monitoring. When connecting to multiple MongoDB servers, allows you to verify connectivity to MongoDB slave servers.',
       author='Brian Richardson & James Townley',
       author_email='jtownley@point2.com',

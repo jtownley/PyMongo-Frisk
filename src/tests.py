@@ -98,9 +98,31 @@ class FriskConnectionTest(unittest.TestCase):
         mock_find_one.return_value={}
         mc = mock_connection.return_value
         mc.database_names.return_value = ['admin','local']
+        class fakedCollection(object):
+            def find_one(self):
+                return {}
+        fakedCollectionInstance = fakedCollection()
+        mc.admin = {"$cmd.sys.inprog":fakedCollectionInstance}
         self.health =  self.connection.check_health()
         self.assertTrue((self.host2,True) in self.health['db_slaves_can_read'])
         self.assertTrue((self.host3,True) in self.health['db_slaves_can_read'])
+
+    @patch('pymongo.connection.Connection')
+    @patch.object(pymongo.collection.Collection, 'find_one')
+    @patch.object(pymongo.collection.Collection, 'remove')
+    @patch.object(pymongo.collection.Collection, 'save')
+    def test_check_health_shouldReportCanReadFromAllSlaves_whenAllSlavesAreUpAndAreWriteLocked(self, mock_save, mock_remove, mock_find_one, mock_connection):
+        mock_find_one.return_value={}
+        mc = mock_connection.return_value
+        mc.database_names.return_value = ['admin','local']
+        class fakedCollection(object):
+            def find_one(self):
+                return {u"fsyncLock":1}
+        fakedCollectionInstance = fakedCollection()
+        mc.admin = {"$cmd.sys.inprog":fakedCollectionInstance}
+        self.health =  self.connection.check_health()
+        self.assertTrue((self.host2,"Write Locked") in self.health['db_slaves_can_read'])
+        self.assertTrue((self.host3,"Write Locked") in self.health['db_slaves_can_read'])
  
     @patch('pymongo.connection.Connection')
     @patch.object(pymongo.collection.Collection, 'find_one')
