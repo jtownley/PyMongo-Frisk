@@ -46,7 +46,7 @@ class FriskConnection(pymongo.Connection):
             is_healthy = False
             slave_connection = None
             try:
-                slave_connection = pymongo.connection.Connection(slave, slave_okay=True)
+                slave_connection = pymongo.connection.Connection(slave, network_timeout=2, slave_okay=True)
                 stats=slave_connection.admin["$cmd.sys.inprog"].find_one()
                 if(u"fsyncLock" not in stats.keys()):
                     if 'admin' in slave_connection.database_names():
