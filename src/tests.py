@@ -14,7 +14,9 @@ class FriskConnectionStub(FriskConnection):
              network_timeout=None, document_class=dict, tz_aware=False,
              _connect=True):
         self.database = DatabaseStub()
-        super(FriskConnection, self).__init__()
+        self.slave_okay = slave_okay
+        self.safe = False
+        self._BaseObject__safe_opts = {}
 
     @property
     def nodes(self):
