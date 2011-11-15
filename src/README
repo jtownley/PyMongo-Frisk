@@ -4,7 +4,7 @@ Release under Apache-BSD style license
 Source: http://github.com/jtownley/PyMongo-Frisk
 
 
-Version: 0.0.6
+Version: 0.0.7
 
 ----------------------------------
 Description
@@ -62,3 +62,7 @@ results is a dictionary as follows
 results is a dictionary as follows:
 {'db_master_url': 'host2', 'db_slave_url': 'host1', 'db_master_can_write': True,
     'db_slave_can_read': True, 'db_master_can_read': True}
+
+
+VERSION HISTORY
+0.0.7 - Added support for pymongo 2.0.1

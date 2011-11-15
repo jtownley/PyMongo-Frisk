@@ -2,6 +2,7 @@ import unittest, datetime
 from pymongo_frisk import PyMongoFrisk as PMF, FriskConnection
 from mock import patch, Mock
 import pymongo.errors
+from pymongo import common
 
 class FriskConnectionStub(FriskConnection):
     __port = 27017
@@ -13,7 +14,8 @@ class FriskConnectionStub(FriskConnection):
              network_timeout=None, document_class=dict, tz_aware=False,
              _connect=True):
         self.database = DatabaseStub()
-  
+        super(FriskConnection, self).__init__()
+
     @property
     def nodes(self):
         return self.__nodes
@@ -28,10 +30,11 @@ class FriskConnectionStub(FriskConnection):
     
     def _get_datetime_now_microseconds(self):
         return 1
-    
+
+
     def _get_new_uuid(self):
         return 1
-        
+    
 class FriskConnectionTest(unittest.TestCase):
 
     host1 = 'localhost:27017'
@@ -297,7 +300,7 @@ class PyMongoFriskTest(unittest.TestCase):
         self.assertFalse(health['db_slave_can_read'])
         self.assertTrue(slave_connection_stub.disconnect_called)
 
-class ConnectionStub(object):
+class ConnectionStub(common.BaseObject):
     def __init__(self):
         self.defaults()
 
@@ -312,7 +315,7 @@ class ConnectionStub(object):
     def disconnect(self):
         self.disconnect_called = True
 
-class DatabaseStub(object):
+class DatabaseStub(common.BaseObject):
     def __init__(self):
         self.defaults()
 
@@ -331,7 +334,7 @@ class DatabaseStub(object):
     def drop_collection(self, collection_name):
         self.drop_collection_called = True
 
-class CollectionStub(object):
+class CollectionStub(common.BaseObject):
     def __init__(self):
         self.defaults()
 

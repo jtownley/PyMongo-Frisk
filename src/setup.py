@@ -66,6 +66,10 @@ results is a dictionary as follows
 results is a dictionary as follows:
 {'db_master_url': 'host2', 'db_slave_url': 'host1', 'db_master_can_write': True,
     'db_slave_can_read': True, 'db_master_can_read': True}
+
+
+VERSION HISTORY
+0.0.7 - Added support for pymongo 2.0.1
 """
 
 classifiers = """\
@@ -79,13 +83,13 @@ Topic :: Utilities
 """
 
 setup(name='PyMongo-Frisk',
-      version='0.0.6',
+      version='0.0.7',
       description='Wrapper for PyMongo Connection that offers additional application level monitoring. When connecting to multiple MongoDB servers, allows you to verify connectivity to MongoDB slave servers.',
       author='Brian Richardson & James Townley',
       author_email='jtownley@point2.com',
       url='http://www.point2.com/',
       py_modules=['pymongo_frisk'],
-      install_requires=['pymongo==1.9'],
+      install_requires=['pymongo==2.0.1'],
       license ='Release under Apache-BSD style license',
       platforms = ["any"],
       classifiers = filter(None, classifiers.split("\n")),
